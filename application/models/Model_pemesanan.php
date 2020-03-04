@@ -84,7 +84,7 @@ class Model_pemesanan extends CI_Model
         return $this->db->get();
     }
 
-    public function getStatus($id_pemesanan)
+    public function getDataPemesananByID($id_pemesanan)
     {
         $this->db->select("*");
         $this->db->from('data_pemesanan');
