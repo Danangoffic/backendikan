@@ -327,4 +327,74 @@ class Pemesanan extends CI_Controller
         
     }
 
+    public function getDetailPemesanan_HTML()
+    {
+        $idPemesanan = $this->input->post('idPemesanan');
+        $statusPemesanan = $this->input->post('statusPemesanan');
+        $JenisPengiriman = $this->input->post('JenisPengiriman');
+        $JenisPembayaran = $this->input->post('JenisPembayaran');
+        $DataDetailPesanan = $this->Pemesanan->getDetailPemesanan($idPemesanan);
+        $DataPemesanan = $this->Pemesanan->getDataPemesananByID($idPemesanan);
+        $DataPembayaran = $this->Pemesanan->getDetailDataPembayaranByIdPemesanan($idPemesanan);
+        $id1 = str_replace("-","",$DataPemesanan->row()->waktu_pemesanan);
+        $id2 = str_replace(" ", "", $id1);
+        $id3 = str_replace(":", "", $id2);
+        $id4 = $id3 . $DataPemesanan->row()->id_pemesanan;
+        $dateNew = date_create($DataPemesanan->row()->waktu_pemesanan);
+        $dateNew2 = date_create($DataPemesanan->row()->tgl_pengiriman);
+        $waktuPemesanan = date_format($dateNew, 'd/m/Y H:i');
+        $tglPengiriman = date_format($dateNew2, 'd/m/Y');
+
+        $dataView = array('DataDetailPesanan' => $DataDetailPesanan, 'DataPemesanan' => $DataPemesanan, 'DataPembayaran' => $DataPembayaran, 'waktuPemesanan' => $waktuPemesanan, 'tglPengiriman' => $tglPengiriman, 'noPesanan' => $id4);
+        $LokasiHalaman = '';
+        if($statusPemesanan=="Baru"){
+            // inEach = Pesanan;
+            if($JenisPengiriman=="Biasa" || $JenisPengiriman=="Cepat"){
+            //   storage.setItem("JenisPengiriman", JenisPengiriman);
+              if($JenisPembayaran=="Full Transfer"){
+                // storage.setItem("metodePembayaran", metodePembayaran);
+                $LokasiHalaman = "detail-pesanan-baru-full-transfer-kirim";
+              }else if($JenisPembayaran=="Transfer Cash"){
+                // storage.setItem("metodePembayaran", metodePembayaran);
+                $LokasiHalaman = "detail-pesanan-baru-dp-kirim";
+              }
+            }else if($JenisPengiriman=="Ambil di Toko"){
+            //   storage.setItem("JenisPengiriman", JenisPengiriman);
+              if($JenisPembayaran=="Full Transfer"){
+                // storage.setItem("metodePembayaran", metodePembayaran);
+                $LokasiHalaman = "detail-pesanan-baru-full-transfer-ambil";
+              }else if($JenisPembayaran=="Full Cash"){
+                // storage.setItem("metodePembayaran", metodePembayaran);
+                $LokasiHalaman = "detail-pesanan-baru-full-tunai-ambil";
+              }else if($JenisPembayaran=="Transfer Cash"){
+                // storage.setItem("metodePembayaran", metodePembayaran);
+                $LokasiHalaman = "detail-pesanan-baru-dp-ambil";
+              }
+            }
+          }else if($statusPemesanan=="Terbayar"){
+            // storage.setItem("statusPemesanan", status);
+            // inEach = PesananPaid;
+            // alert("TERBAYAR");
+            if($JenisPengiriman=="Biasa" || $JenisPengiriman=="Cepat"){
+              if($JenisPembayaran=="Full Transfer"){
+                $LokasiHalaman = "detail-pesanan-terbayar-full-transfer-kirim";
+              }else if($JenisPembayaran=="Transfer Cash"){
+                $LokasiHalaman = "detail-pesanan-terbayar-dp-kirim";
+              }
+            }else if($JenisPengiriman=="Ambil di Toko"){
+              if($JenisPembayaran=="Full Transfer"){
+                $LokasiHalaman = "detail-pesanan-terbayar-full-transfer-ambil";
+              }else if($JenisPembayaran=="Full Cash"){
+                $LokasiHalaman = "detail-pesanan-terbayar-full-tunai-ambil";
+              }else if($JenisPembayaran=="Transfer Cash"){
+                $LokasiHalaman = "detail-pesanan-terbayar-dp-ambil";
+              }
+            }
+          }else if($statusPemesanan == "Terkirim"){
+            // storage.setItem("statusPemesanan", "Terkirim");
+            // inEach = PesananSent;
+          }
+          $this->load->view('pembeli/pesanan-saya/'.$LokasiHalaman, $dataView);
+    }
+
 }

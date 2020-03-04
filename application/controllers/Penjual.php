@@ -11,6 +11,7 @@ class Penjual extends CI_Controller
 		header("Access-Control-Allow-Origin: *");
 		$this->load->model('Model_penjual', 'penjual', TRUE);
 		$this->load->model('Model_rekening', 'rekening');
+		$this->load->model('Model_kendaraan', 'kendaraan');
 	}
 
 	public function index()
@@ -307,5 +308,57 @@ class Penjual extends CI_Controller
 		$data_penjual = $this->penjual->ambil_semua_usaha();
 		header("Content-type: application/json");
 		echo json_encode($data_penjual->result_array(),JSON_PRETTY_PRINT);
+	}
+
+	public function getKendaraanByIdPenjual_html()
+	{
+		$id_usaha = $this->input->post('id_usaha');
+		$where = 'id_usaha = ' . $id_usaha;
+		$data = $this->kendaraan->getKendaraanBy($where);
+		// echo $this->db->last_query();
+		if($data->num_rows() > 0){
+			$this->load->view('penjual/DataKendaraanPenjual', array('data' => $data));
+			// $result = array('dataKendaraan' => $data->result_array(),
+			// 				'responseMessage' => 'success',
+			// 				'responseCode' => '00');
+			// echo json_encode($result, JSON_PRETTY_PRINT);
+		}else{
+			echo 'kosong';
+		}
+	}
+
+	public function getKendaraanById_JSON()
+	{
+		$id_kendaraan = $this->input->post('id_kendaraan');
+		$where = 'id_kendaraan = ' . $id_kendaraan;
+		$data = $this->kendaraan->getKendaraanBy($where);
+		if($data->num_rows() > 0){
+			$result = array('dataKendaraan' => $data->result_array(),
+							'responseMessage' => 'success');
+							echo json_encode($result, JSON_PRETTY_PRINT);
+		}else{
+			$result = array('dataKendaraan' => null,
+							'responseMessage' => 'failed');
+							echo json_encode($result, JSON_PRETTY_PRINT);
+		}
+	}
+
+	public function UpdateKendaraanUsaha()
+	{
+		$id_kendaraan = $this->input->post('id_kendaraan');
+		$jenis_kendaraan =  $this->input->post('jenis_kendaraan');
+		$plat_kendaraan = $this->input->post('plat_kendaraan');
+		$kapasitas_kendaraan = $this->input->post('kapasitas_kendaraan');
+		$id_usaha = $this->input->post('id_usaha');
+		// if($id==)
+
+		$where = 'id_kendaraan = ' . $id_kendaraan;
+		$data = array('jenis_kendaraan' => $jenis_kendaraan, 'plat_kendaraan' => $plat_kendaraan, 'kapasitas_kendaraan' => $kapasitas_kendaraan);
+		$update = $this->kendaraan->updateKendaraan($data, $where);
+		if($update){
+			echo "success";
+		}else{
+			echo "failed";
+		}
 	}
 }
