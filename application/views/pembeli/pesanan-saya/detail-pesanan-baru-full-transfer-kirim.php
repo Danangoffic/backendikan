@@ -16,7 +16,7 @@
         </div>
 
         <div class="card">
-          <ul class="collection collection-product"></ul>
+          <ul class="collection collection-product">Loading..</ul>
         </div>
 
         <div class="card">

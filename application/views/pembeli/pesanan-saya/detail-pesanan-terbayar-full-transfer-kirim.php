@@ -12,14 +12,14 @@
         
         <div class="card">
           <ul class="collection">
-            <li class="collection-item teal-text darken-1"><b>No. Pesanan :<span class="secondary-content NoPesanan">310120181025</span></b></li>
-            <li class="collection-item teal-text darken-1"><b>Waktu Pemesanan :<span class="secondary-content WaktuPemesanan">31/01/2020 23:00</span></b></li>
+            <li class="collection-item teal-text darken-1"><b>No. Pesanan :<span class="secondary-content NoPesanan">Loading</span></b></li>
+            <li class="collection-item teal-text darken-1"><b>Waktu Pemesanan :<span class="secondary-content WaktuPemesanan">Loading</span></b></li>
             <li class="collection-item teal-text darken-1"><b>Waktu Pembayaran :<span class="secondary-content WaktuPembayaran">31/01/2020 23:30</span></b></li>
           </ul>
         </div>
         
         <div class="card">
-          <ul class="collection collection-product"></ul>
+          <ul class="collection collection-product">Loading..</ul>
         </div>
 
         <div class="card">
