@@ -11,4 +11,10 @@ class Model_user extends CI_Model
 		$this->db->limit(1);
 		return $this->db->get('data_pengguna');
 	}
+
+	public function updateUser($data, $where)
+	{
+		$this->db->where($where);
+		return $this->db->update('data_pembeli', $data);
+	}
 }
