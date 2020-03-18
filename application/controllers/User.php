@@ -164,4 +164,66 @@ class User extends CI_Controller
 
 		echo json_encode($response);
 	}
+
+	public function prosesupdatepembeli()
+	{
+		$nama_pb		= $_POST['nama_pb'];
+		//$foto_pb		= $_POST['foto_pb'];
+		// $noktp_pj		= $_POST['noktp_pj'];
+		// $fotoktp_pj		= $_POST['fotoktp_pj'];
+		$jk_pb			= $_POST['jk_pb'];
+		$tgllahir_pb 	= $_POST['tgllahir_pb'];
+		$telp_pb		= $_POST['telp_pb'];
+		$alamat_pb		= $_POST['alamat_pb'];
+		$kab_pb			= $_POST['kab_pb'];
+		$kec_pb			= $_POST['kec_pb'];
+		$kel_pb			= $_POST['kel_pb'];
+		$longitude_pb 	= $_POST['longitude'];
+		$latitude_pb 	= $_POST['latitude'];
+		$id_akun		= $this->input->post('idAkun');
+		if (is_array($_FILES)) {
+			if (is_uploaded_file($_FILES['foto_pb']['tmp_name'])) {
+
+				$sourcePath2 = $_FILES['foto_pb']['tmp_name'];
+				$foto_pb = date('dmYHis') . $_FILES['foto_pb']['name'];
+				$targetPath2 = "./foto_pembeli/" . $foto_pb;
+				move_uploaded_file($sourcePath2, $targetPath2);
+			}
+		}
+
+		$dataUpdate = array(
+			'nama_pb' => $nama_pb,
+			'foto_pb' => $foto_pb,
+			'jk_pb' => $jk_pb,
+			'tgllahir_pb' => $tgllahir_pb,
+			'telp_pb' => $telp_pb,
+			'alamat_pb' => $alamat_pb,
+			'kab_pb' => $kab_pb,
+			'kec_pb' => $kec_pb,
+			'kel_pb' => $kel_pb,
+			'latitude_pb' => $latitude_pb,
+			'longitude_pb' => $longitude_pb
+		);
+		$where = "id_pb = '$id_akun'";
+
+		$updatee = $this->user->updateUser($dataUpdate, $where);
+
+		if($updatee) {
+			// $query2 = "INSERT INTO `data_pengguna` VALUES (null, '$username', '$password', '$last_id_pj', 'pembeli')";
+			// $insert2 = $this->db->query($query2);
+			// if($insert2){
+				$status = 'berhasil';
+			// } else{
+			// 	$status = 'gagal2 . ' . $this->db->_error_message();
+			// }
+		} else {
+			$status = 'gagal';
+		}
+
+		$response = array(
+			'status' => $status
+		);
+
+		echo json_encode($response);
+	}
 }

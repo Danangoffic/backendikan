@@ -47,4 +47,14 @@ class Pembeli extends CI_Controller
 		header("Content-type: application/json");
 		echo json_encode($result);
 	}
+
+	public function ViewUbahProfile()
+	{
+		$dataProfile = $this->input->post('dataProfile');
+		$dataProfile = json_decode($dataProfile);
+		$dataProfile = $dataProfile[0];
+		$this->load->view('pembeli/ubah-profile', $dataProfile);
+
+	}
+	
 }

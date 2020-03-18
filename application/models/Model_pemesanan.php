@@ -110,6 +110,24 @@ class Model_pemesanan extends CI_Model
         return $this->db->get();
     }
 
+    public function getDetailPengirimanWithKurirKendaraan($id_pemesanan)
+    {
+        $this->db->select('*');
+        $this->db->from("data_pengiriman dp");
+        $this->db->join('data_kurir dk', 'dp.id_kurir = dk.id_kurir', 'RIGHT');
+        $this->db->join('data_kendaraan dk2', 'dp.id_kendaraan = dk2.id_kendaraan', 'RIGHT');
+        $this->db->where('dp.id_pemesanan', $id_pemesanan);
+        return $this->db->get();
+    }
+
+    public function getDetailPengiriman($id_pemesanan)
+    {
+        $this->db->select('*');
+        $this->db->from("data_pengiriman dp");
+        $this->db->where('dp.id_pemesanan', $id_pemesanan);
+        return $this->db->get();
+    }
+
     public function UpdatePembayaran($data, $id_pemesanan)
     {
         $this->db->where('id_pemesanan', $id_pemesanan);

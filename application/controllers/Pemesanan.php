@@ -344,56 +344,28 @@ class Pemesanan extends CI_Controller
         $dateNew2 = date_create($DataPemesanan->row()->tgl_pengiriman);
         $waktuPemesanan = date_format($dateNew, 'd/m/Y H:i');
         $tglPengiriman = date_format($dateNew2, 'd/m/Y');
-
-        $dataView = array('DataDetailPesanan' => $DataDetailPesanan, 'DataPemesanan' => $DataPemesanan, 'DataPembayaran' => $DataPembayaran, 'waktuPemesanan' => $waktuPemesanan, 'tglPengiriman' => $tglPengiriman, 'noPesanan' => $id4);
+        $DataPengiriman = $this->Pemesanan->getDetailPengirimanWithKurirKendaraan($idPemesanan)->row();
+        
+        // echo $this->db->last_query();
+        $dataView = array('DataDetailPesanan' => $DataDetailPesanan, 
+                        'DataPemesanan' => $DataPemesanan, 
+                        'DataPembayaran' => $DataPembayaran, 
+                        'waktuPemesanan' => $waktuPemesanan, 
+                        'tglPengiriman' => $tglPengiriman, 
+                        'noPesanan' => $id4,
+                        'DataPengiriman' => $DataPengiriman);
         $LokasiHalaman = '';
         if($statusPemesanan=="Baru"){
-            // inEach = Pesanan;
-            if($JenisPengiriman=="Biasa" || $JenisPengiriman=="Cepat"){
-            //   storage.setItem("JenisPengiriman", JenisPengiriman);
-              if($JenisPembayaran=="Full Transfer"){
-                // storage.setItem("metodePembayaran", metodePembayaran);
-                $LokasiHalaman = "detail-pesanan-baru-full-transfer-kirim";
-              }else if($JenisPembayaran=="Transfer Cash"){
-                // storage.setItem("metodePembayaran", metodePembayaran);
-                $LokasiHalaman = "detail-pesanan-baru-dp-kirim";
-              }
-            }else if($JenisPengiriman=="Ambil di Toko"){
-            //   storage.setItem("JenisPengiriman", JenisPengiriman);
-              if($JenisPembayaran=="Full Transfer"){
-                // storage.setItem("metodePembayaran", metodePembayaran);
-                $LokasiHalaman = "detail-pesanan-baru-full-transfer-ambil";
-              }else if($JenisPembayaran=="Full Cash"){
-                // storage.setItem("metodePembayaran", metodePembayaran);
-                $LokasiHalaman = "detail-pesanan-baru-full-tunai-ambil";
-              }else if($JenisPembayaran=="Transfer Cash"){
-                // storage.setItem("metodePembayaran", metodePembayaran);
-                $LokasiHalaman = "detail-pesanan-baru-dp-ambil";
-              }
-            }
+            $LokasiHalaman = "detail-pesanan-baru-all";
           }else if($statusPemesanan=="Terbayar"){
-            // storage.setItem("statusPemesanan", status);
-            // inEach = PesananPaid;
-            // alert("TERBAYAR");
-            if($JenisPengiriman=="Biasa" || $JenisPengiriman=="Cepat"){
-              if($JenisPembayaran=="Full Transfer"){
-                $LokasiHalaman = "detail-pesanan-terbayar-full-transfer-kirim";
-              }else if($JenisPembayaran=="Transfer Cash"){
-                $LokasiHalaman = "detail-pesanan-terbayar-dp-kirim";
-              }
-            }else if($JenisPengiriman=="Ambil di Toko"){
-              if($JenisPembayaran=="Full Transfer"){
-                $LokasiHalaman = "detail-pesanan-terbayar-full-transfer-ambil";
-              }else if($JenisPembayaran=="Full Cash"){
-                $LokasiHalaman = "detail-pesanan-terbayar-full-tunai-ambil";
-              }else if($JenisPembayaran=="Transfer Cash"){
-                $LokasiHalaman = "detail-pesanan-terbayar-dp-ambil";
-              }
-            }
+            $LokasiHalaman = "detail-pesanan-terbayar-all";
           }else if($statusPemesanan == "Terkirim"){
-            // storage.setItem("statusPemesanan", "Terkirim");
-            // inEach = PesananSent;
+              $LokasiHalaman = "detail-pesanan-terkirim-all";
           }
+          $dataView['statusPemesanan'] = $statusPemesanan;
+          $dataView['JenisPengiriman'] = $JenisPengiriman;
+          $dataView['JenisPembayaran'] = $JenisPembayaran;
+        //   var_dump($dataView);
           $this->load->view('pembeli/pesanan-saya/'.$LokasiHalaman, $dataView);
     }
 
