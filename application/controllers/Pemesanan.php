@@ -256,6 +256,137 @@ class Pemesanan extends CI_Controller
         echo json_encode($resultArray, JSON_PRETTY_PRINT);
     }
 
+    public function getAllTransaksiPenjual()
+    {
+        $idusaha = $_POST['id_usaha'];
+        $status = null;
+        $tipePengiriman = null;
+        if($this->input->post('tipePengiriman')===null){
+            $status = $this->input->post('status');
+        }else{
+            $tipePengiriman = $this->input->post('tipePengiriman');
+        }
+
+        $limit = null;
+        $orderBy = "id_pemesanan";
+        $typeOrder = "DESC";
+        $resultArray = array();
+        $result = array();
+        $statusHeader = 200;
+        try{
+            $query = $this->Pemesanan->getDataPemesananByIdUsahaAndStatusAndTipePengiriman($idusaha, $status, $tipePengiriman,$limit, $orderBy, $typeOrder);
+            if($query->num_rows() > 0){
+                foreach($query->result() as $dataPemesanan){
+                    $id1 = str_replace("-","",$dataPemesanan->waktu_pemesanan);
+                    $id2 = str_replace(" ", "", $id1);
+                    $id3 = str_replace(":", "", $id2);
+                    $id4 = $id3 . $dataPemesanan->id_pemesanan;
+                    $dateNew = date_create($dataPemesanan->waktu_pemesanan);
+                    $dateNew2 = date_create($dataPemesanan->tgl_pengiriman);
+                    $waktuPemesanan = date_format($dateNew, 'd/m/Y H:i');
+                    $tglPengiriman = date_format($dateNew2, 'd/m/Y');
+                    $idPemesanan = $dataPemesanan->id_pemesanan;
+                    $JenisPengiriman = $dataPemesanan->tipe_pengiriman;
+                    $TotalHargaAll = $dataPemesanan->total_harga;
+                    $BiayaPengiriman = $dataPemesanan->biaya_kirim;
+
+                    $IdUsaha = $dataPemesanan->id_usaha;
+                    $IdPembeli = $dataPemesanan->id_pb;
+                    $statusPengiriman = $dataPemesanan->status_pemesanan;
+                    $DataUsaha = $this->Usaha->ambil_usaha_by_id($IdUsaha)->row();
+                    $DataPembeli = $this->Pembeli->detail_pembeli($IdPembeli)->row();
+                    $DataPembayaran = $this->Pemesanan->getDataPembayaranByIdPemesanan($idPemesanan)->row();
+                    $queryDetailPesanan = $this->Pemesanan->getDetailPemesanan($idPemesanan);
+                    // echo $this->db->last_query();
+                    $DataDetailPesanan = $queryDetailPesanan->row();
+                    if(isset($DataDetailPesanan)){
+                        // var_dump($DataDetailPesanan);
+                        $namaProduk = $DataDetailPesanan->nama_produk;
+                        $namaProduk = $namaProduk . ' ' . $DataDetailPesanan->nama_variasi;
+                        $hargaProduk = $DataDetailPesanan->harga;
+                        $totalProduk = $DataDetailPesanan->jml_produk;
+                        $fotoProduk = $DataDetailPesanan->foto_produk;
+                        $arrayToDisplay = array('namaProduk' => $namaProduk,
+                                                'hargaProduk' => $hargaProduk,
+                                                'totalProduk' => $totalProduk,
+                                                'fotoProduk' => $fotoProduk);
+                        $DaftarProduk = $queryDetailPesanan->result_array();
+                        $TotalHargaProduk = 0;
+                        $TotalBeratProduk = 0;
+                        $TotalProduk = 0;
+                        $SubTotal = null;
+                        $SubBerat = null;
+                        $SubTotalProduk = null;
+                        foreach($queryDetailPesanan->result() as $Products){
+                            $SubTotal[] = $Products->sub_total;
+                            $SubBerat[] = $Products->berat_produk;
+                            $SubTotalProduk[] = $Products->jml_produk;
+                        }
+                        $TotalHargaProduk = array_sum($SubTotal);
+                        $TotalBeratProduk = array_sum($SubBerat);
+                        $TotalProduk = array_sum($SubTotalProduk);
+                        $result[] = array('ID' => $id4,
+                                        'idPemesanan' => $idPemesanan,
+                                        'TotalHargaAll' => $TotalHargaAll,
+                                        'BiayaPengiriman' => $BiayaPengiriman,
+                                        'JenisPengiriman' => $JenisPengiriman,
+                                        'display' => $arrayToDisplay,
+                                        'AllPurchaseProduk' => $DaftarProduk,
+                                        'waktuPemesanan' => $waktuPemesanan,
+                                        'tglPengiriman' => $tglPengiriman,
+                                        'TotalHargaProduk' => $TotalHargaProduk,
+                                        'TotalBeratProduk' => $TotalBeratProduk,
+                                        'TotalProduk' => $TotalProduk,
+                                        'DataUsaha' => $DataUsaha,
+                                        'DataPembeli' => $DataPembeli,
+                                        'DataPembayaran' => $DataPembayaran,
+                                        'statusPengiriman' => $statusPengiriman);
+                    }
+                }
+                $resultArray = array('dataPesanan' => $result,
+                                    'responseMessage' => 'success',
+                                    'responseCode' => "00");
+            }else{
+                $statusHeader = 400;
+                $resultArray = array('dataPesanan' => array(),
+                                    'responseMessage' => 'success',
+                                    'responseCode' => "00");
+            }
+        }catch(Exception $e){
+            $resultArray = array('dataPesanan' => null,
+            'responseMessage' => 'failed ' + $e->getMessage(),
+            'responseCode' => "01");
+            $statusHeader = 500;
+        }
+        
+        $this->output
+        ->set_status_header($statusHeader)
+        ->set_content_type('application/json', 'utf-8')
+        ->set_output(json_encode($resultArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+
+    public function PemesananSelesai()
+    {
+        $id = $this->input->post('id');
+        $data = array('status_pemesanan' => 'Terkirim');
+        $update = $this->Pemesanan->updatePemesanan($data, array('id_pemesanan' => $id));
+        $update  = $this->db->affected_rows();
+        if($update > 0){
+            $response = array('id' => $id, 'message' => 'success', 'statusCode' => '00');
+            $this->output
+            ->set_status_header(200)
+            ->set_content_type('application/json', 'utf-8')
+            ->set_output(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        }else{
+            $response = array('message' => 'failed. Pesanan Tidak Ada', 'statusCode' => '01');
+            $this->output
+            ->set_status_header(404)
+            ->set_content_type('application/json', 'utf-8')
+            ->set_output(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        }
+        
+    }
+
     public function ProsesUnggahBuktiPembayaran_Pemesanan()
     {
         $bankTerpilih = $_POST['bankTerpilih'];
@@ -308,6 +439,7 @@ class Pemesanan extends CI_Controller
         $idPemesanan = $_POST['idPesanan'];
         $result = array();
         $DeletePembayaran = $this->Pemesanan->DeletePembayaran("id_pemesanan =" . $idPemesanan);
+        $statusHeader = 204;
         if($DeletePembayaran){
             $DeleteDetailPemesanan = $this->Pemesanan->DeleteDetailPemesanan("id_pemesanan = " . $idPemesanan);
             if($DeleteDetailPemesanan){
@@ -315,15 +447,22 @@ class Pemesanan extends CI_Controller
                 if($DeletePemesanan){
                     $result = array('responseMessage' => "success", "responseCode" => "00");
                 }else{
+                    $statusHeader = 400;
                     $result = array('responseMessage' => "failed", "responseCode" => "01");
                 }
             }else{
+                $statusHeader = 400;
                 $result = array('responseMessage' => "failed", "responseCode" => "02");
             }
         }else{
+            $statusHeader = 500;
             $result = array('responseMessage' => "failed", "responseCode" => "03");
         }
-        echo json_encode($result, JSON_PRETTY_PRINT);
+        $this->output
+            ->set_status_header($statusHeader)
+            ->set_content_type('application/json', 'utf-8')
+            ->set_output(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        // echo json_encode($result, JSON_PRETTY_PRINT);
         
     }
 

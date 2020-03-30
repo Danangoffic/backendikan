@@ -53,6 +53,33 @@ class Model_pemesanan extends CI_Model
         return $this->db->get('data_pemesanan');
     }
 
+    public function getDataPemesananByIdUsahaAndStatusAndTipePengiriman($idUsaha, $status=null, $tipePengiriman=null,$limit=null, $orderBy=null,$typeOrder=null)
+    {
+        $this->db->where('id_usaha',$idUsaha);
+        if($tipePengiriman!==null){
+            $this->db->where('tipe_pengiriman', $tipePengiriman); 
+            $whereStatus = "status_pemesanan != 'Terkirim'";
+            $this->db->where($whereStatus);
+        }else{
+            $this->db->where('status_pemesanan', $status);
+            if($status!=="Terkirim"){
+                $whereTipe = "tipe_pengiriman != 'Ambil Di Toko'";
+                $this->db->where($whereTipe);
+            }
+        }
+        if($limit!=null){
+            $this->db->limit($limit);
+        }
+        if($orderBy!=null){
+            if($typeOrder!=null){
+                $this->db->order_by($orderBy, $typeOrder);
+            }else{
+                $this->db->order_by($orderBy, "ASC");
+            } 
+        }
+        return $this->db->get('data_pemesanan');
+    }
+
     public function getDetailPemesanan($idPemesanan)
     {
         $this->db->select('ddp.harga, dp.nama_produk, ddp.jml_produk, dv.nama_variasi, dp.id_produk, dp.foto_produk, ddp.sub_total, dp.berat_produk');
