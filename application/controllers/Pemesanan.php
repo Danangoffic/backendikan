@@ -70,7 +70,8 @@ class Pemesanan extends CI_Controller
         // $totalHargaProduk = 
         $tglPemesanan = date("Y/m/d H:i:s", strtotime("now"));
         $expiredDate = date("Y/m/d H:i:s", strtotime("+60 minutes"));        
-        
+        $statusHeader=201;
+        $result = array();
         try{
             //TODO:INSERT DATA PEMESANAN, DETAIL PEMESANAN, PEMBAYARAN
             // Pemesanan
@@ -108,24 +109,29 @@ class Pemesanan extends CI_Controller
                     if($isPembayaran){
                         $result = array('responseMessage' => 'success', 'listPemesanan' => $produk, 'responseCode' => '00', 'id_pemesanan' => $id_pemesanan);
                     }else{
-                        $error = $this->db->error();
-                        $result = array('responseMessage' => 'failed ' . $error['message'], 'listPemesanan' => null, 'responseCode' => '03');
+                        $statusHeader = 401;
+                        $result = array('responseMessage' => 'failed ', 'listPemesanan' => null, 'responseCode' => '03');
                     }
                 }else{
-                    $error = $this->db->error();
-                    $result = array('responseMessage' => 'failed ' . $error['message'], 'listPemesanan' => null, 'responseCode' => '02');
+                    $statusHeader = 409;
+                    $result = array('responseMessage' => 'failed ', 'listPemesanan' => null, 'responseCode' => '02');
                 }
             }else{
-                $error = $this->db->error();
-                $result = array('responseMessage' => 'failed ' . $error['message'], 'listPemesanan' => null, 'responseCode' => '01');
+                $statusHeader = 400;
+                $result = array('responseMessage' => 'failed ', 'listPemesanan' => null, 'responseCode' => '01');
             }
             
         }catch(Exception $e){
                 $errorMessage =  $e->getMessage();
                 $result = array('responseMessage' => 'failed ' . $errorMessage, 'listPemesanan' => null, 'responseCode' => '01');
+                $statusHeader = 500;
         }
-        header("Content-type: application/json");
-		echo json_encode($result, JSON_PRETTY_PRINT);
+        // header("Content-type: application/json");
+		// echo json_encode($result, JSON_PRETTY_PRINT);
+        $this->output
+            ->set_status_header($statusHeader)
+            ->set_content_type('application/json', 'utf-8')
+            ->set_output(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
     public function getHargaPesananById()
@@ -139,27 +145,23 @@ class Pemesanan extends CI_Controller
     public function StatusPemesanan()
     {
         $id_pemesanan = $_POST['id_pemesanan'];
+        $statusHeader=200;
         try{
-            $data = $this->Pemesanan->getStatus($id_pemesanan);
+            $data = $this->Pemesanan->getDetailPemesanan($id_pemesanan);
             if($data->num_rows() > 0){
-                $dataResult = $data->row();
-                $id1 = str_replace("-","",$dataResult->waktu_pemesanan);
-                $id2 = str_replace(" ", "", $id1);
-                $id3 = str_replace(":", "", $id2);
-                $id4 = $id3 . $dataResult->id_pemesanan;
-                $dateNew = date_create($dataResult->waktu_pemesanan);
-                $dateNew2 = date_create($dataResult->tgl_pengiriman);
-                $waktuPemesanan = date_format($dateNew, 'd/m/Y H:i');
-                $tipePengiriman = $dataResult->tipe_pengiriman;
-                $dataPesanan = $this->Pemesanan->getDetailPemesanan($id_pemesanan)->result();
-                $result = array('responseMessage' => 'success', 'responseCode' => '00', 'status' => $dataResult->status_pemesanan, 'noPemesanan' => $id4, 'waktuPemesanan' => $waktuPemesanan, 'tipePengiriman' => $tipePengiriman, 'idPesanan' => $id_pemesanan, 'dataPesanan' => $dataPesanan);
+                $result = array('responseMessage' => 'success', 'responseCode' => '00', 'data' => $data->result_array());
             }else{
+                $statusHeader = 404;
                 $result = array('responseMessage' => 'failed', 'responseCode' => '02', 'status' => null);
             }
         }catch(Exception $e){
+            $statusHeader = 500;
             $result = array('responseMessage' => 'failed', 'responseCode' => '01', 'status' => null);
         }
-        echo json_encode($result, JSON_PRETTY_PRINT);
+        $this->output
+            ->set_status_header($statusHeader)
+            ->set_content_type('application/json', 'utf-8')
+            ->set_output(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
     public function getAllPemesananByAkun()
@@ -171,6 +173,8 @@ class Pemesanan extends CI_Controller
         $typeOrder = "DESC";
         $resultArray = array();
         $result = array();
+        $statusHeader = 200;
+        $resultArray = array();
         try{
             $query = $this->Pemesanan->getDataPemesananByIdUserAndStatus($idAkun, $status,$limit, $orderBy, $typeOrder);
             if($query->num_rows() > 0){
@@ -243,17 +247,21 @@ class Pemesanan extends CI_Controller
                                     'responseMessage' => 'success',
                                     'responseCode' => "00");
             }else{
+                $statusHeader = 404;
                 $resultArray = array('dataPesanan' => array(),
                                     'responseMessage' => 'success',
                                     'responseCode' => "00");
             }
         }catch(Exception $e){
+            $statusHeader = 500;
             $resultArray = array('dataPesanan' => null,
             'responseMessage' => 'failed ' + $e->getMessage(),
             'responseCode' => "01");
         }
-        
-        echo json_encode($resultArray, JSON_PRETTY_PRINT);
+        $this->output
+            ->set_status_header($statusHeader)
+            ->set_content_type('Application/json')
+            ->set_output(json_encode($resultArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
     public function getAllTransaksiPenjual()
@@ -369,21 +377,30 @@ class Pemesanan extends CI_Controller
     {
         $id = $this->input->post('id');
         $data = array('status_pemesanan' => 'Terkirim');
-        $update = $this->Pemesanan->updatePemesanan($data, array('id_pemesanan' => $id));
-        $update  = $this->db->affected_rows();
-        if($update > 0){
-            $response = array('id' => $id, 'message' => 'success', 'statusCode' => '00');
-            $this->output
-            ->set_status_header(200)
-            ->set_content_type('application/json', 'utf-8')
-            ->set_output(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        }else{
-            $response = array('message' => 'failed. Pesanan Tidak Ada', 'statusCode' => '01');
-            $this->output
-            ->set_status_header(404)
-            ->set_content_type('application/json', 'utf-8')
-            ->set_output(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        try {
+            $update = $this->Pemesanan->updatePemesanan($data, array('id_pemesanan' => $id));
+            $updateAffected  = $this->db->affected_rows();
+            if($updateAffected > 0){
+                $response = array('id' => $id, 'message' => 'success', 'statusCode' => '00');
+                $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json', 'utf-8')
+                ->set_output(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            }else{
+                $response = array('message' => 'failed. Pesanan Tidak Ada', 'statusCode' => '01');
+                $this->output
+                ->set_status_header(404)
+                ->set_content_type('application/json', 'utf-8')
+                ->set_output(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            }
+        } catch (Exception $e) {
+            $response = array('message' => 'failed.' . $e->getMessage(), 'statusCode' => '99');
+                $this->output
+                ->set_status_header(500)
+                ->set_content_type('application/json', 'utf-8')
+                ->set_output(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         }
+        
         
     }
 
